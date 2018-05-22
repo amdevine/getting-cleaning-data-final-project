@@ -29,10 +29,10 @@
 | | |
 | --- | --- |
 | Code | **measurement** |
-| Name | Measurement |
+| Name | Measurement Type |
 | Description | Type of summary measurement of raw accelerometer and gyroscope data, for the duration of the Test Subject performing the Activity. |
-| Data Type | double |
-| Values | ??? |
+| Data Type | categorical |
+| Values | See list of possible values listed below. |
 
 | | |
 | --- | --- |
