@@ -8,7 +8,6 @@ library(tidyr)
 
 # --------------------------------------------------------------------------- #
 # 1. Merge training and test sets to create one data set.
-# --------------------------------------------------------------------------- #
 
 # Checks if train and test data have already been combined. If not, 
 # imports and rbinds them.
@@ -25,17 +24,14 @@ if(!exists("xdata")) {
     colnames(xdata) <- features
 }
 
-# Imports and merges y_* (activities) and subject_* (subjects) 
+# Imports and cbinds y_* (activities) and subject_* (subjects) 
 ytest <- fread('./UCI HAR Dataset/test/y_test.txt', header = FALSE)
 ytrain <- fread('./UCI HAR Dataset/train/y_train.txt', header = FALSE)
 ydata <- rbind(ytest, ytrain)
-ylabels <- fread('./UCI HAR Dataset/activity_labels.txt', header = FALSE)
-ydata <- merge(ydata, ylabels, by="V1")
-colnames(ydata) <- c("activityid", "activity")
+colnames(ydata) <- c("activityid")
 obs <- cbind(ydata, xdata)
 rm(ytest)
 rm(ytrain)
-rm(ylabels)
 
 subtest <- fread('./UCI HAR Dataset/test/subject_test.txt', header = FALSE)
 subtrain <- fread('./UCI HAR Dataset/train/subject_train.txt', header = FALSE)
@@ -45,18 +41,29 @@ obs <- cbind(subdata, obs)
 rm(subtest)
 rm(subtrain)
 
+
 # --------------------------------------------------------------------------- #
 # 2. Extract only the measurements on the mean and standard deviation
 #    for each measurement
+
+obs_mean_sd <- select(obs, subjectid, activityid, matches("(mean\\.\\.|std\\.\\.)"))
+
+
 # --------------------------------------------------------------------------- #
+# 3. Use descriptive activity names to name the activities in the data set
 
-obs_mean_sd <- select(obs, matches("(mean\\.\\.|std\\.\\.)"))
-colnames(obs_mean_sd) <- gsub("..", "", names(obs_mean_sd), fixed = TRUE)
+acts <- fread('./UCI HAR Dataset/activity_labels.txt', header = FALSE)
+colnames(acts) <- c("activityid", "activity")
+obs_mean_sd <- obs_mean_sd %>% 
+                merge(acts, by = "activityid") %>%
+                select(subjectid, activityid, activity, everything())
 
 
-# Use descriptive activity names to name the activities in the data set
+# --------------------------------------------------------------------------- #
+# 4. Appropriately label the data set with descriptive variable names
 
-# Appropriately label the data set with descriptive variable names
+# colnames(obs_mean_sd) <- gsub("..", "", names(obs_mean_sd), fixed = TRUE)
+
 
 # Create a second, independent tidy data set with the average of each variable
 # for each activity and each subject.
