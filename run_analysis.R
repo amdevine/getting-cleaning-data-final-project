@@ -1,6 +1,6 @@
 # This script analyzes data from the Human Activity Recognition
 # Using Smartphones study.
-# Assumes UCI HAR Dataset folder is stored in same directory as run_analysis.R.
+# Assumes UCI HAR Dataset folder is stored in working directory.
 
 library(data.table)
 library(dplyr)
@@ -22,6 +22,7 @@ if(!exists("xdata")) {
     features <- fread('./UCI HAR Dataset/features.txt', header = FALSE)
     features <- make.names(features$V2, unique = TRUE)
     colnames(xdata) <- features
+    rm(features)
 }
 
 # Imports and cbinds y_* (activities) and subject_* (subjects) 
@@ -30,8 +31,10 @@ ytrain <- fread('./UCI HAR Dataset/train/y_train.txt', header = FALSE)
 ydata <- rbind(ytest, ytrain)
 colnames(ydata) <- c("activityid")
 obs <- cbind(ydata, xdata)
+rm(xdata)
 rm(ytest)
 rm(ytrain)
+rm(ydata)
 
 subtest <- fread('./UCI HAR Dataset/test/subject_test.txt', header = FALSE)
 subtrain <- fread('./UCI HAR Dataset/train/subject_train.txt', header = FALSE)
@@ -40,6 +43,7 @@ colnames(subdata) <- "subjectid"
 obs <- cbind(subdata, obs)
 rm(subtest)
 rm(subtrain)
+rm(subdata)
 
 
 # --------------------------------------------------------------------------- #
@@ -47,6 +51,7 @@ rm(subtrain)
 #    for each measurement
 
 obs_mean_sd <- select(obs, subjectid, activityid, matches("(mean\\.\\.|std\\.\\.)"))
+rm(obs)
 
 
 # --------------------------------------------------------------------------- #
@@ -57,13 +62,31 @@ colnames(acts) <- c("activityid", "activity")
 obs_mean_sd <- obs_mean_sd %>% 
                 merge(acts, by = "activityid") %>%
                 select(subjectid, activityid, activity, everything())
+rm(acts)
 
 
 # --------------------------------------------------------------------------- #
 # 4. Appropriately label the data set with descriptive variable names
 
-# colnames(obs_mean_sd) <- gsub("..", "", names(obs_mean_sd), fixed = TRUE)
+colnames(obs_mean_sd) <- gsub("..", "", names(obs_mean_sd), fixed = TRUE)
 
 
-# Create a second, independent tidy data set with the average of each variable
-# for each activity and each subject.
+# --------------------------------------------------------------------------- #
+# 5. Create a second, independent tidy data set with the average of
+#    each variable for each activity and each subject.
+
+# Gather observations into one long dataframe
+obs_summary <-  obs_mean_sd %>%
+                select(-activityid) %>%
+                gather(key="measurementtype", 
+                       value="measurementvalue", 
+                       -(subjectid:activity)) %>%
+                group_by(subjectid, activity, measurementtype) %>%
+                summarize(meanvalue = mean(measurementvalue)) %>%
+                spread(measurementtype, meanvalue)
+
+# --------------------------------------------------------------------------- #
+# Writes summary tiday dataset to a file
+
+write.table(obs_summary, "avg_mean_sd_per_subject_activity.txt", row.name=FALSE)
+
