@@ -34,7 +34,7 @@ I included every variable from the original dataset that contained `mean()` or `
 
 ## Tidy Data Rationale
 
-As Hadley Wickham [defines the principles of Tidy Data](https://www.jstatsoft.org/article/view/v059i10/), he explains that 
+As Hadley Wickham explains in [Tidy Data (2014)](https://www.jstatsoft.org/article/view/v059i10/), 
 
 > A general rule of thumb is that it is easier to describe functional relationships between variables... than between rows, and it is easier to make comparisons between groups of observations... than between groups of columns.
 
